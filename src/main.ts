@@ -23,11 +23,11 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Gestor de solicitudes')
-    .setDescription('API del gestor de solicitudes RIWI')
+    .setDescription('API de gestor de solicitudes RIWI')
     .setVersion('1.0')
     .addTag('Solicitudes')
     .addApiKey(
-      { type: 'apiKey', name: 'x-api-key', in: 'header', description: 'Clave de API requerida para autenticar todas las peticiones' },
+      { type: 'apiKey', name: 'x-api-key', in: 'header', description: 'API key required to authenticate all requests' },
       'x-api-key',
     )
     .build();

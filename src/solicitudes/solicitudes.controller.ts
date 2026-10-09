@@ -21,9 +21,9 @@ const USERNAMES = USERS.map((user) => user.username);
 const DEFAULT_USERNAME = USERNAMES[0];
 
 const X_USER_DESCRIPTION =
-  'Nombre de usuario que identifica al solicitante. Debe ser uno de los usuarios de prueba: ' +
+  'Username identifying the caller. Must be one of the in-memory test users: ' +
   `${USERS.map((user) => `${user.username} (${user.role})`).join(', ')}. ` +
-  'El rol asociado a la solicitud siempre se resuelve en el servidor a partir de este usuario, nunca a partir de lo enviado por el cliente.';
+  'The role attached to the request is always resolved server-side from this username, never from client input.';
 
 @ApiTags('Solicitudes')
 @ApiSecurity('x-api-key')
@@ -40,17 +40,17 @@ export class SolicitudesController {
   @Post()
   @Roles('admin', 'supervisor', 'asesor')
   @ApiOperation({
-    summary: 'Crear una solicitud',
+    summary: 'Create a request',
     description:
-      'Crea una nueva solicitud. El estado siempre se fuerza a PENDIENTE. ' +
-      'Si el solicitante es un asesor, el asesor se fuerza al usuario que hace la llamada. ' +
-      'Si el solicitante es admin/supervisor, el asesor es obligatorio en el cuerpo y debe ser un usuario existente con rol asesor.',
+      'Creates a new request. estado is always forced to PENDIENTE. ' +
+      'If the caller is an asesor, asesor is forced to the caller username. ' +
+      'If the caller is admin/supervisor, asesor is required in the body and must be an existing user with role asesor.',
   })
   @ApiBody({ type: CreateSolicitudeDto })
-  @ApiResponse({ status: 201, description: 'Solicitud creada', type: Solicitude })
-  @ApiResponse({ status: 400, description: 'Validación fallida o asesor ausente/inválido' })
-  @ApiResponse({ status: 401, description: 'API key ausente/inválida o usuario desconocido' })
-  @ApiResponse({ status: 403, description: 'Rol no permitido' })
+  @ApiResponse({ status: 201, description: 'Request created', type: Solicitude })
+  @ApiResponse({ status: 400, description: 'Validation failed or asesor is missing/invalid' })
+  @ApiResponse({ status: 401, description: 'Missing/invalid API key or unknown user' })
+  @ApiResponse({ status: 403, description: 'Role not allowed' })
   create(@Body() createSolicitudeDto: CreateSolicitudeDto, @CurrentUser() user: User) {
     return this.solicitudesService.create(createSolicitudeDto, user);
   }
@@ -58,13 +58,13 @@ export class SolicitudesController {
   @Get()
   @Roles('admin', 'supervisor', 'asesor')
   @ApiOperation({
-    summary: 'Listar solicitudes permitidas para el usuario',
+    summary: 'List requests visible to the caller',
     description:
-      'Admin/supervisor ven todas las solicitudes. Un asesor solo ve las solicitudes asignadas a él, filtradas directamente en la consulta a la base de datos. Los resultados se ordenan por creadaEn descendente.',
+      'Admin/supervisor see every request. An asesor only sees requests assigned to them, filtered directly in the database query. Results are ordered by creadaEn descending.',
   })
-  @ApiResponse({ status: 200, description: 'Listado de solicitudes', type: [Solicitude] })
-  @ApiResponse({ status: 401, description: 'API key ausente/inválida o usuario desconocido' })
-  @ApiResponse({ status: 403, description: 'Rol no permitido' })
+  @ApiResponse({ status: 200, description: 'List of requests', type: [Solicitude] })
+  @ApiResponse({ status: 401, description: 'Missing/invalid API key or unknown user' })
+  @ApiResponse({ status: 403, description: 'Role not allowed' })
   findAll(@CurrentUser() user: User) {
     return this.solicitudesService.findAll(user);
   }
@@ -72,16 +72,16 @@ export class SolicitudesController {
   @Get(':id')
   @Roles('admin', 'supervisor', 'asesor')
   @ApiOperation({
-    summary: 'Consultar una solicitud por id',
+    summary: 'Get a request by id',
     description:
-      'Un asesor solo puede consultar las solicitudes asignadas a él; cualquier otro id de solicitud devuelve 404 (el mismo estado usado para un id inexistente) para que un asesor no pueda inferir que la solicitud de otro asesor existe.',
+      'An asesor can only fetch requests assigned to them; any other request id returns 404 (the same status used for a non-existent id) so an asesor cannot infer that another advisor\'s request exists.',
   })
-  @ApiParam({ name: 'id', type: Number, description: 'Id de la solicitud' })
-  @ApiResponse({ status: 200, description: 'Solicitud encontrada', type: Solicitude })
-  @ApiResponse({ status: 400, description: 'El id no es numérico' })
-  @ApiResponse({ status: 401, description: 'API key ausente/inválida o usuario desconocido' })
-  @ApiResponse({ status: 403, description: 'Rol no permitido' })
-  @ApiResponse({ status: 404, description: 'Solicitud no encontrada o no pertenece al solicitante' })
+  @ApiParam({ name: 'id', type: Number, description: 'Request id' })
+  @ApiResponse({ status: 200, description: 'Request found', type: Solicitude })
+  @ApiResponse({ status: 400, description: 'id is not a number' })
+  @ApiResponse({ status: 401, description: 'Missing/invalid API key or unknown user' })
+  @ApiResponse({ status: 403, description: 'Role not allowed' })
+  @ApiResponse({ status: 404, description: 'Request not found or not owned by the caller' })
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
     return this.solicitudesService.findOne(id, user);
   }
@@ -89,18 +89,18 @@ export class SolicitudesController {
   @Patch(':id/estado')
   @Roles('admin', 'supervisor', 'asesor')
   @ApiOperation({
-    summary: 'Cambiar el estado de una solicitud',
+    summary: 'Change the state of a request',
     description:
-      'Transiciones permitidas: PENDIENTE -> EN_GESTION y EN_GESTION -> RESUELTA únicamente. Cualquier otra transición (incluyendo no-ops o reabrir una solicitud RESUELTA) devuelve 409.',
+      'Allowed transitions: PENDIENTE -> EN_GESTION and EN_GESTION -> RESUELTA only. Any other transition (including no-ops or reopening a RESUELTA request) returns 409.',
   })
-  @ApiParam({ name: 'id', type: Number, description: 'Id de la solicitud' })
+  @ApiParam({ name: 'id', type: Number, description: 'Request id' })
   @ApiBody({ type: UpdateEstadoDto })
-  @ApiResponse({ status: 200, description: 'Estado actualizado', type: Solicitude })
-  @ApiResponse({ status: 400, description: 'Validación fallida (valor de estado inválido)' })
-  @ApiResponse({ status: 401, description: 'API key ausente/inválida o usuario desconocido' })
-  @ApiResponse({ status: 403, description: 'Rol no permitido' })
-  @ApiResponse({ status: 404, description: 'Solicitud no encontrada o no pertenece al solicitante' })
-  @ApiResponse({ status: 409, description: 'Transición de estado inválida' })
+  @ApiResponse({ status: 200, description: 'State updated', type: Solicitude })
+  @ApiResponse({ status: 400, description: 'Validation failed (invalid estado value)' })
+  @ApiResponse({ status: 401, description: 'Missing/invalid API key or unknown user' })
+  @ApiResponse({ status: 403, description: 'Role not allowed' })
+  @ApiResponse({ status: 404, description: 'Request not found or not owned by the caller' })
+  @ApiResponse({ status: 409, description: 'Invalid state transition' })
   updateEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEstadoDto: UpdateEstadoDto,

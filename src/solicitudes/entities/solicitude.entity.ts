@@ -11,28 +11,28 @@ import { EstadoSolicitud } from '../enums/estado-solicitud.enum.js';
 
 @Entity('solicitudes')
 export class Solicitude {
-  @ApiProperty({ description: 'Id de la solicitud', example: 1 })
+  @ApiProperty({ description: 'Request id', example: 1 })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'Nombre del cliente que realiza la solicitud', example: 'Juan Pérez' })
+  @ApiProperty({ description: 'Name of the client making the request', example: 'Luis Reyes' })
   @Column()
   cliente: string;
 
   @ApiProperty({
-    description: 'Descripción de la solicitud',
-    example: 'El cliente solicita una llamada de seguimiento',
+    description: 'Description of the request',
+    example: 'Customer requests a follow-up call',
   })
   @Column()
   descripcion: string;
 
-  @ApiProperty({ description: 'Nombre de usuario del asesor asignado', example: 'asesor1' })
+  @ApiProperty({ description: 'Username of the assigned asesor', example: 'asesor1' })
   @Index()
   @Column()
   asesor: string;
 
   @ApiProperty({
-    description: 'Estado actual de la solicitud',
+    description: 'Current state of the request',
     enum: EstadoSolicitud,
     example: EstadoSolicitud.PENDIENTE,
   })
@@ -43,11 +43,11 @@ export class Solicitude {
   })
   estado: EstadoSolicitud;
 
-  @ApiProperty({ description: 'Fecha de creación' })
+  @ApiProperty({ description: 'Creation timestamp' })
   @CreateDateColumn()
   creadaEn: Date;
 
-  @ApiProperty({ description: 'Fecha de última actualización' })
+  @ApiProperty({ description: 'Last update timestamp' })
   @UpdateDateColumn()
   actualizadaEn: Date;
 }
