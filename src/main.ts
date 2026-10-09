@@ -25,7 +25,9 @@ async function bootstrap() {
     .setTitle('Gestor de solicitudes')
     .setDescription('API de gestor de solicitudes RIWI')
     .setVersion('1.0')
-    .addTag('APP')
+    .addTag('Solicitudes')
+    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
+    .addApiKey({ type: 'apiKey', name: 'x-user', in: 'header' }, 'x-user')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
