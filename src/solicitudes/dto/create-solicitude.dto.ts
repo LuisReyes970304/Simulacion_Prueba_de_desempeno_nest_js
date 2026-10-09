@@ -1,17 +1,32 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateSolicitudeDto {
+  @ApiProperty({
+    description: 'Name of the client making the request',
+    example: 'Jane Doe',
+  })
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsNotEmpty({ message: 'cliente must not be empty' })
+  cliente: string;
 
-    @ApiProperty({ description: 'Nombre del solicitante' })
-    cliente: string;
+  @ApiProperty({
+    description: 'Description of the request',
+    example: 'Customer cannot access their account dashboard',
+  })
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsNotEmpty({ message: 'descripcion must not be empty' })
+  descripcion: string;
 
-    @ApiProperty({ description: 'Descripción de la solicitud' })
-    descripcion: string;
-
-    @ApiProperty({ description: 'Asesor asignado' })
-    asesor: string;
-
-    @ApiProperty({ description: 'Estado de la solicitud', enum: ['pendiente', 'en_gestion', 'resuelta'], default: 'pendiente' })
-    estado: 'pendiente' | 'en_gestion' | 'resuelta';
+  @ApiPropertyOptional({
+    description:
+      'Username of the advisor to assign the request to. Required (and must belong to an existing user with the "asesor" role) when created by an admin or supervisor. Ignored and overridden by the server when created by an asesor.',
+    example: 'asesor1',
+  })
+  @IsOptional()
+  @IsString()
+  asesor?: string;
 }
-
