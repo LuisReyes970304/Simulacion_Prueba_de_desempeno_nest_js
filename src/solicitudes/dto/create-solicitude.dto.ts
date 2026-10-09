@@ -4,8 +4,8 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateSolicitudeDto {
   @ApiProperty({
-    description: 'Name of the client making the request',
-    example: 'Jane Doe',
+    description: 'Nombre del cliente que realiza la solicitud',
+    example: 'Juan Pérez',
   })
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -13,8 +13,8 @@ export class CreateSolicitudeDto {
   cliente: string;
 
   @ApiProperty({
-    description: 'Description of the request',
-    example: 'Customer cannot access their account dashboard',
+    description: 'Descripción de la solicitud',
+    example: 'El cliente solicita una llamada de seguimiento',
   })
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -23,7 +23,7 @@ export class CreateSolicitudeDto {
 
   @ApiPropertyOptional({
     description:
-      'Username of the advisor to assign the request to. Required (and must belong to an existing user with the "asesor" role) when created by an admin or supervisor. Ignored and overridden by the server when created by an asesor.',
+      'Nombre de usuario del asesor al que se asigna la solicitud. Obligatorio (y debe pertenecer a un usuario existente con rol "asesor") cuando la crea un admin o supervisor. Se ignora y se sobrescribe en el servidor cuando la crea un asesor.',
     example: 'asesor1',
   })
   @IsOptional()

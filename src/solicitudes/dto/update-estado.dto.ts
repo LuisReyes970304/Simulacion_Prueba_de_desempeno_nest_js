@@ -4,7 +4,7 @@ import { EstadoSolicitud } from '../enums/estado-solicitud.enum.js';
 
 export class UpdateEstadoDto {
   @ApiProperty({
-    description: 'New state for the request',
+    description: 'Nuevo estado de la solicitud',
     enum: EstadoSolicitud,
     example: EstadoSolicitud.EN_GESTION,
   })

@@ -23,11 +23,13 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Gestor de solicitudes')
-    .setDescription('API de gestor de solicitudes RIWI')
+    .setDescription('API del gestor de solicitudes RIWI')
     .setVersion('1.0')
     .addTag('Solicitudes')
-    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
-    .addApiKey({ type: 'apiKey', name: 'x-user', in: 'header' }, 'x-user')
+    .addApiKey(
+      { type: 'apiKey', name: 'x-api-key', in: 'header', description: 'Clave de API requerida para autenticar todas las peticiones' },
+      'x-api-key',
+    )
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
