@@ -1,118 +1,215 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Gestor de Solicitudes
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS REST API for managing customer service requests (`solicitudes`). Requests are created by
+advisors (or on their behalf by admins/supervisors), tracked through a fixed state machine
+(`PENDIENTE -> EN_GESTION -> RESUELTA`), and scoped per advisor so each advisor only ever sees their
+own work.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Access control is header-based (API key + a server-trusted user identity) rather than JWT, matching
+the scope of this assessment: no login flow, no user entity, no frontend.
 
-## Description
+## Tech stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [NestJS](https://nestjs.com/) 12 (Express platform)
+- [TypeORM](https://typeorm.io/) + PostgreSQL
+- [class-validator](https://github.com/typestack/class-validator) / [class-transformer](https://github.com/typestack/class-transformer) for DTO validation
+- [Swagger](https://docs.nestjs.com/openapi/introduction) for API documentation
+- [Vitest](https://vitest.dev/) + [supertest](https://github.com/ladjs/supertest) for unit and e2e tests
+- Docker / docker-compose for local orchestration
 
-## Project setup
+## Database change: SQLite -> PostgreSQL
 
-```bash
-$ npm install
-```
+The original assessment brief specified SQLite. The Scrum Master later changed this requirement to
+**PostgreSQL** for the whole project, to keep the exercise closer to a real deployment (connection
+pooling, proper enum columns, concurrent access) and to standardize all assessment submissions on the
+same database engine. The app module, `docker-compose.yaml`, and all configuration in this repo are
+built around Postgres (`type: 'postgres'` in `TypeOrmModule`, a `db` service in docker-compose using
+`postgres:15.3-alpine`) — there is no SQLite code path to migrate away from.
 
-## Compile and run the project
+## Prerequisites
 
-```bash
-# development
-$ npm run start
+- Node.js 24+
+- npm
+- Docker and Docker Compose (for PostgreSQL, and optionally for running the whole app)
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+## Setup
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Fill in the values if you need something other than the committed defaults (see the comments in
+`.env.example`, in particular `POSTGRES_HOST`, which must be `db` for docker-compose or `localhost`
+for a local run).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Running with Docker Compose (full stack)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Runs both the API and PostgreSQL as containers:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+The API will be reachable at `http://localhost:${PORT}` (see your `.env`).
 
-## Observability
+## Running locally (API on the host, DB in Docker)
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+Starts only PostgreSQL in Docker, and runs the Nest app with the host Node.js toolchain (hot reload):
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+```bash
+docker compose up -d db
+npm install
+npm run start:dev
+```
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+For this mode, set `POSTGRES_HOST=localhost` in `.env` (the default committed in `.env.example`).
 
-This project is already instrumented. Create a free account at [observe.nestjs.com](https://observe.nestjs.com), add an application, and paste the generated app key and secret into the `ObserveModule.forRoot()` call in `src/app.module.ts`.
+## API documentation (Swagger)
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+Once running, Swagger UI is available at:
 
-## Resources
+```
+http://localhost:${PORT}/docs
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+The `/docs` route is served outside of Nest's controller/guard pipeline, so it is reachable **without**
+any auth headers — only the `/solicitudes` endpoints are protected.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+To try protected endpoints from Swagger UI, click **Authorize** and fill in both schemes:
 
-## Support
+- `x-api-key`: one of the keys from `API_KEYS` in your `.env` (e.g. `dev-key-123`)
+- `x-user`: one of the test usernames below (e.g. `asesor1`)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Test users and roles
 
-## Stay in touch
+There is no user entity or database table for users — they are an in-memory constant
+(`src/auth/users.ts`) used only to resolve a role from the `x-user` header. The role attached to a
+request is **always** resolved server-side from this list; a client cannot send its own role.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| username      | role         |
+|---------------|--------------|
+| `admin1`      | `admin`      |
+| `supervisor1` | `supervisor` |
+| `asesor1`     | `asesor`     |
+| `asesor2`     | `asesor`     |
 
-## License
+## Endpoints
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+All endpoints require `x-api-key` and `x-user` headers.
+
+| Method | Path                    | Roles                       | Description                                   |
+|--------|--------------------------|------------------------------|------------------------------------------------|
+| POST   | `/solicitudes`           | admin, supervisor, asesor   | Create a request                              |
+| GET    | `/solicitudes`           | admin, supervisor, asesor   | List requests (scoped per role, see below)    |
+| GET    | `/solicitudes/:id`       | admin, supervisor, asesor   | Get a single request by id                    |
+| PATCH  | `/solicitudes/:id/estado`| admin, supervisor, asesor   | Change a request's state                      |
+
+## Business rules and HTTP status codes
+
+- **Authentication (401)** — `ApiKeyGuard` rejects any request with a missing/unknown `x-api-key`;
+  `UserGuard` rejects any request with a missing/unknown `x-user`. Both run before any endpoint logic,
+  so an unauthenticated caller never reaches business code. 401 is the correct code for "who are you"
+  failures, distinct from authorization failures.
+- **Authorization (403)** — `RolesGuard` checks the `@Roles(...)` metadata on the handler against the
+  server-resolved role. All endpoints in this API accept every role, but the decorator and guard are
+  still wired end-to-end (and would return 403) to demonstrate role-based access control as required.
+- **Validation (400)** — the global `ValidationPipe` (`whitelist: true`, `forbidNonWhitelisted: true`,
+  `transform: true`) rejects missing/empty/wrong-typed fields and any field not declared on the DTO
+  (e.g. a client trying to send `estado` or `id` on create). `ParseIntPipe` on `:id` returns 400 for a
+  non-numeric id. This guarantees protected fields (`id`, `estado`, `creadaEn`, `actualizadaEn`) can
+  never be set by the client on create.
+- **RN-01 (create)** — `estado` is always forced to `PENDIENTE`, ignoring any client value (impossible
+  anyway, since `CreateSolicitudeDto` doesn't even declare `estado`). If the caller is an `asesor`,
+  `asesor` is forced to the caller's own username. If the caller is `admin`/`supervisor`, `asesor` is
+  required in the body and must name an existing user whose role is `asesor`, otherwise **400**.
+- **RN-02 (list)** — `admin`/`supervisor` see every request; an `asesor` only sees requests where
+  `asesor = <their username>`. This filter is applied as a TypeORM `where` clause, never by fetching
+  everything and filtering in memory. Results are ordered by `creadaEn` descending.
+- **Ownership / not found (404)** — `GET /solicitudes/:id` and `PATCH /solicitudes/:id/estado` apply
+  the same ownership-scoped lookup as the list endpoint for an `asesor`. A request that doesn't exist
+  and a request that exists but belongs to another advisor both return **404** (not 403) — this is
+  deliberate, so an advisor cannot use the response code to infer that a request they don't own
+  actually exists.
+- **RN-03 (state transition, 409)** — only `PENDIENTE -> EN_GESTION` and `EN_GESTION -> RESUELTA` are
+  allowed. Any other transition — a no-op (same state), skipping a step (`PENDIENTE -> RESUELTA`), or
+  reopening a resolved request (`RESUELTA -> ...`) — returns **409 Conflict** with a message naming the
+  attempted and allowed transitions, e.g.:
+  `Invalid state transition from PENDIENTE to RESUELTA. Allowed: PENDIENTE -> EN_GESTION`.
+
+## Response format
+
+All responses go through a global interceptor and exception filter so every response — success or
+error — has a predictable shape.
+
+Success (`ResponseInterceptor`):
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "data": { "id": 1, "cliente": "Acme Corp", "...": "..." },
+  "timestamp": "2026-10-09T15:38:33.739Z"
+}
+```
+
+Error (`HttpExceptionFilter`):
+
+```json
+{
+  "success": false,
+  "statusCode": 409,
+  "message": "Invalid state transition from PENDIENTE to RESUELTA. Allowed: PENDIENTE -> EN_GESTION",
+  "error": "Conflict",
+  "path": "/solicitudes/1/estado",
+  "timestamp": "2026-10-09T15:38:33.798Z"
+}
+```
+
+Validation errors keep the real HTTP status (400/401/403/404/409) and `message` is the array of
+validation messages produced by `class-validator`. A `QueryFailedError` from TypeORM is mapped to a
+generic 400 instead of leaking SQL/driver internals. Any other unknown error becomes a generic 500
+(`Internal server error`), with the real error logged server-side via the Nest `Logger`.
+
+## Tests and evidence
+
+```bash
+npm run build      # compiles the project
+npm run test        # unit tests (service logic, with the repository mocked via getRepositoryToken)
+npm run test:e2e    # e2e tests against a real Postgres instance (requires `docker compose up -d db`)
+```
+
+The e2e suite (`test/app.e2e-spec.ts`) clears the `solicitudes` table in `beforeEach` and exercises the
+full stack against the real database: authentication, DTO validation, ownership scoping, state
+transitions, and the response/error envelope shapes.
+
+`docs/evidence.sh` is a curl script covering the main acceptance scenarios end-to-end; its output
+against a running instance is saved in `docs/evidence.md`.
+
+## Project structure
+
+```
+src/
+  auth/
+    decorators/        # @Roles, @CurrentUser
+    guards/             # ApiKeyGuard, UserGuard, RolesGuard (registered globally, in that order)
+    users.ts            # in-memory test users
+    auth.module.ts
+  common/
+    interceptors/       # ResponseInterceptor (success envelope)
+    filters/            # HttpExceptionFilter (error envelope)
+  config/
+    configuration.ts     # env parsing (port, apiKeys, database)
+  solicitudes/
+    dto/                 # CreateSolicitudeDto, UpdateEstadoDto
+    entities/            # Solicitude (TypeORM entity, table "solicitudes")
+    enums/               # EstadoSolicitud
+    solicitudes.controller.ts
+    solicitudes.service.ts   # RN-01/RN-02/RN-03 business rules live here
+    solicitudes.module.ts
+  app.module.ts
+  main.ts
+test/
+  app.e2e-spec.ts
+docs/
+  evidence.sh / evidence.md
+```
