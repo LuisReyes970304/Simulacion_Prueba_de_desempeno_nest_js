@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { SolicitudesService } from './solicitudes.service.js';
 import { CreateSolicitudeDto } from './dto/create-solicitude.dto.js';
-import { UpdateSolicitudeDto } from './dto/update-solicitude.dto.js';
+import { UpdateEstadoDto } from './dto/update-estado.dto.js';
 
 @Controller('solicitudes')
 export class SolicitudesController {
@@ -23,7 +23,7 @@ export class SolicitudesController {
   }
 
   @Patch(':id/estado')
-  update(@Param('id') id: string, @Body() updateSolicitudeDto: UpdateSolicitudeDto) {
-    return this.solicitudesService.update(+id, updateSolicitudeDto);
+  update(@Param('id') id: string, @Body() updateEstadoDto: UpdateEstadoDto) {
+    return this.solicitudesService.update(+id, updateEstadoDto);
   }
 }

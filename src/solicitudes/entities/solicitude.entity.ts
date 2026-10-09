@@ -1,32 +1,38 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  Index,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { EstadoSolicitud } from '../enums/estado-solicitud.enum.js';
 
-enum EstadoDeSolicitud {
-    PENDIENTE = 'pendiente',
-    EN_GESTION = 'en_gestion',
-    RESUELTA = 'resuelta',
-}
-
-@Entity()
+@Entity('solicitudes')
 export class Solicitude {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    cliente: string;
+  @Column()
+  cliente: string;
 
-    @Column()
-    descripcion: string;
+  @Column()
+  descripcion: string;
 
-    @Column()
-    asesor: string;
+  @Index()
+  @Column()
+  asesor: string;
 
-    @Column({ type: 'enum', 
-        enum: EstadoDeSolicitud,
-        default: EstadoDeSolicitud.PENDIENTE })
-    estado: EstadoDeSolicitud;
+  @Column({
+    type: 'enum',
+    enum: EstadoSolicitud,
+    default: EstadoSolicitud.PENDIENTE,
+  })
+  estado: EstadoSolicitud;
 
-    @Column({ type: 'timestamp', 
-        default: () => 'CURRENT_TIMESTAMP' })
-    creadaEn: Date;
+  @CreateDateColumn()
+  creadaEn: Date;
+
+  @UpdateDateColumn()
+  actualizadaEn: Date;
 }
-
