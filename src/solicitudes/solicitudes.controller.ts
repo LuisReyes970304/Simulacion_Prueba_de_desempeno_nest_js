@@ -1,29 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe } from '@nestjs/common';
 import { SolicitudesService } from './solicitudes.service.js';
 import { CreateSolicitudeDto } from './dto/create-solicitude.dto.js';
 import { UpdateEstadoDto } from './dto/update-estado.dto.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import type { User } from '../auth/users.js';
 
 @Controller('solicitudes')
 export class SolicitudesController {
   constructor(private readonly solicitudesService: SolicitudesService) {}
 
   @Post()
-  create(@Body() createSolicitudeDto: CreateSolicitudeDto) {
-    return this.solicitudesService.create(createSolicitudeDto);
+  @Roles('admin', 'supervisor', 'asesor')
+  create(@Body() createSolicitudeDto: CreateSolicitudeDto, @CurrentUser() user: User) {
+    return this.solicitudesService.create(createSolicitudeDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.solicitudesService.findAll();
+  @Roles('admin', 'supervisor', 'asesor')
+  findAll(@CurrentUser() user: User) {
+    return this.solicitudesService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.solicitudesService.findOne(+id);
+  @Roles('admin', 'supervisor', 'asesor')
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: User) {
+    return this.solicitudesService.findOne(id, user);
   }
 
   @Patch(':id/estado')
-  update(@Param('id') id: string, @Body() updateEstadoDto: UpdateEstadoDto) {
-    return this.solicitudesService.update(+id, updateEstadoDto);
+  @Roles('admin', 'supervisor', 'asesor')
+  updateEstado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateEstadoDto: UpdateEstadoDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.solicitudesService.updateEstado(id, updateEstadoDto, user);
   }
 }
