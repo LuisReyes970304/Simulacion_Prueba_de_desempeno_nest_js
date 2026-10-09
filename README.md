@@ -17,14 +17,6 @@ the scope of this assessment: no login flow, no user entity, no frontend.
 - [Vitest](https://vitest.dev/) + [supertest](https://github.com/ladjs/supertest) for unit and e2e tests
 - Docker / docker-compose for local orchestration
 
-## Database change: SQLite -> PostgreSQL
-
-The original assessment brief specified SQLite. The Scrum Master later changed this requirement to
-**PostgreSQL** for the whole project, to keep the exercise closer to a real deployment (connection
-pooling, proper enum columns, concurrent access) and to standardize all assessment submissions on the
-same database engine. The app module, `docker-compose.yaml`, and all configuration in this repo are
-built around Postgres (`type: 'postgres'` in `TypeOrmModule`, a `db` service in docker-compose using
-`postgres:15.3-alpine`) — there is no SQLite code path to migrate away from.
 
 ## Prerequisites
 
