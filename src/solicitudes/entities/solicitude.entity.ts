@@ -24,5 +24,9 @@ export class Solicitude {
         enum: EstadoDeSolicitud,
         default: EstadoDeSolicitud.PENDIENTE })
     estado: EstadoDeSolicitud;
+
+    @Column({ type: 'timestamp', 
+        default: () => 'CURRENT_TIMESTAMP' })
+    creadaEn: Date;
 }
 
