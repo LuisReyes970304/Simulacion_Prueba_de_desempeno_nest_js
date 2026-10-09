@@ -6,6 +6,7 @@ import { SolicitudesModule } from './solicitudes/solicitudes.module.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -29,6 +30,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         synchronize: true, 
       }),
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
