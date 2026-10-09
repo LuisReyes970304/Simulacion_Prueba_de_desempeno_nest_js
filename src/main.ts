@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule, ObserveInstrument } from './app.module.js';
 
@@ -15,7 +16,8 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
 
-  const port = process.env.PORT ?? 3010
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('port') ?? 3000;
   await app.listen(port);
   console.log(`API is running in http://localhost:${port}`);
   console.log(`Swagger test is running in http://localhost:${port}/docs`);
