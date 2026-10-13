@@ -132,7 +132,7 @@ describe('Solicitudes (e2e)', () => {
         .post('/solicitudes')
         .set('x-api-key', API_KEY)
         .set('x-user', 'asesor1')
-        .send({ cliente: 'Acme', descripcion: 'Cannot login', asesor: 'asesor2' });
+        .send({ cliente: 'Acme', descripcion: 'Cannot login' });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -143,28 +143,23 @@ describe('Solicitudes (e2e)', () => {
       expect(found).not.toBeNull();
     });
 
-    it('requires a valid asesor in the body when created by admin/supervisor', async () => {
-      const missing = await request(app.getHttpServer())
-        .post('/solicitudes')
-        .set('x-api-key', API_KEY)
-        .set('x-user', 'admin1')
-        .send({ cliente: 'Acme', descripcion: 'desc' });
-      expect(missing.status).toBe(400);
-
-      const invalid = await request(app.getHttpServer())
-        .post('/solicitudes')
-        .set('x-api-key', API_KEY)
-        .set('x-user', 'admin1')
-        .send({ cliente: 'Acme', descripcion: 'desc', asesor: 'admin1' });
-      expect(invalid.status).toBe(400);
-
-      const valid = await request(app.getHttpServer())
+    it('rejects asesor as a body field (RN-07 moves assignment to a dedicated endpoint)', async () => {
+      const res = await request(app.getHttpServer())
         .post('/solicitudes')
         .set('x-api-key', API_KEY)
         .set('x-user', 'admin1')
         .send({ cliente: 'Acme', descripcion: 'desc', asesor: 'asesor1' });
-      expect(valid.status).toBe(201);
-      expect(valid.body.data.asesor).toBe('asesor1');
+      expect(res.status).toBe(400);
+    });
+
+    it('leaves the request unassigned when created by admin/supervisor', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/solicitudes')
+        .set('x-api-key', API_KEY)
+        .set('x-user', 'admin1')
+        .send({ cliente: 'Acme', descripcion: 'desc' });
+      expect(res.status).toBe(201);
+      expect(res.body.data.asesor).toBeNull();
     });
 
     it('lets an asesor only see their own requests', async () => {
@@ -184,14 +179,14 @@ describe('Solicitudes (e2e)', () => {
         .get('/solicitudes')
         .set('x-api-key', API_KEY)
         .set('x-user', 'asesor1');
-      expect(asesor1List.body.data).toHaveLength(1);
-      expect(asesor1List.body.data[0].asesor).toBe('asesor1');
+      expect(asesor1List.body.data.items).toHaveLength(1);
+      expect(asesor1List.body.data.items[0].asesor).toBe('asesor1');
 
       const adminList = await request(app.getHttpServer())
         .get('/solicitudes')
         .set('x-api-key', API_KEY)
         .set('x-user', 'admin1');
-      expect(adminList.body.data).toHaveLength(2);
+      expect(adminList.body.data.items).toHaveLength(2);
     });
 
     it('does not let an asesor GET another advisor\'s request by id (404)', async () => {

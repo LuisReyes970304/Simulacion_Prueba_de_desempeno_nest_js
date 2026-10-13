@@ -26,10 +26,14 @@ export class Solicitude {
   @Column()
   descripcion: string;
 
-  @ApiProperty({ description: 'Username of the assigned asesor', example: 'asesor1' })
+  @ApiProperty({
+    description: 'Username of the assigned asesor, or null when the request has not been assigned yet',
+    example: 'asesor1',
+    nullable: true,
+  })
   @Index()
-  @Column()
-  asesor: string;
+  @Column({ type: 'varchar', nullable: true })
+  asesor: string | null;
 
   @ApiProperty({
     description: 'Current state of the request',

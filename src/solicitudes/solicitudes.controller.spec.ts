@@ -16,6 +16,8 @@ describe('SolicitudesController', () => {
             findAll: vi.fn(),
             findOne: vi.fn(),
             updateEstado: vi.fn(),
+            assign: vi.fn(),
+            findHistorial: vi.fn(),
           },
         },
       ],
